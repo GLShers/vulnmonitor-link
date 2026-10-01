@@ -21,12 +21,16 @@
 <script>
 // Адрес туннеля меняется несколько раз в час, поэтому он не вшит в страницу,
 // а лежит рядом в url.txt: сторож на сервере переписывает его при каждой смене.
-// Читаем файл напрямую с raw, а не через Pages: Pages пересобирается минуту,
-// и всё это время страница вела бы на мёртвый адрес.
-var SRC = 'https://raw.githubusercontent.com/GLShers/vulnmonitor-link/main/url.txt';
+// Файл читается через api.github.com, а не через raw и не через Pages: те
+// держат ответ в кеше пять и десять минут, и всё это время страница вела бы
+// на уже мёртвый адрес. У api кеш минута.
+var SRC = 'https://api.github.com/repos/GLShers/vulnmonitor-link/contents/url.txt';
 var PATH = '/d/vulnmonitor-main/vulnmonitor';
 
-fetch(SRC + '?t=' + Date.now(), { cache: 'no-store' })
+fetch(SRC + '?t=' + Date.now(), {
+  cache: 'no-store',
+  headers: { 'Accept': 'application/vnd.github.raw' }
+})
   .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
   .then(function (t) {
     var url = t.trim();
